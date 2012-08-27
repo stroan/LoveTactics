@@ -1,3 +1,7 @@
+-- Splits an image into an even grid of equally sized of 
+-- tiles. The tiles are indexed by a single value, equal 
+-- to (row * colCound + col)
+
 SpriteSheet = {}
 SpriteSheet.__index = SpriteSheet
 function SpriteSheet:new(filename, tileWidth, tileHeight)
@@ -20,7 +24,10 @@ function SpriteSheet:new(filename, tileWidth, tileHeight)
         end
     end
 
-    local o = { img = img, quads = quads, tileWidth = tileWidth, tileHeight = tileHeight }
+    local o = { img = img
+              , quads = quads
+              , tileWidth = tileWidth
+              , tileHeight = tileHeight }
     setmetatable(o, self)
     return o
 end
