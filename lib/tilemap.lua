@@ -41,9 +41,10 @@ function TileMap:draw()
         end
     end
 
-    selectedXY = self:ijToXY(self.selectedI, self.selectedJ)
+    local selectedXY = self:ijToXY(self.selectedI, self.selectedJ)
+    local h = self.tiles.heights[self.map[self.selectedI + 1][self.selectedJ + 1]]
     love.graphics.setColor(255,0,0,255)
-    love.graphics.circle("fill", selectedXY.x, selectedXY.y, 10, 5)
+    love.graphics.circle("fill", selectedXY.x, selectedXY.y - h, 10, 5)
     love.graphics.setColor(255,255,255,255)
 
     love.graphics.pop()
@@ -54,6 +55,8 @@ function TileMap:ijToXY(i, j)
     return {x = (tileWidth / 2) * (j - i), y = (tileWidth / 4) * (j + i)}
 end
 
+-- Iterates over all tiles and checks to see if the mouse collides with it.
+-- May have to optimize at some point, probably not though.
 function TileMap:mouseOver(x, y)
     local tiles = self.tiles.spriteSheet
     local heights = self.tiles.heights
@@ -70,10 +73,13 @@ function TileMap:mouseOver(x, y)
         for j=0,(self.width-1) do
             local h = heights[self.map[i + 1][j + 1]]
             local isoPart = (math.abs(thisX - x) / 2)
+            local topY = (thisY - halfTileHeight) - h
+            local bottomY = thisY + halfTileHeight
 
-            local hit = (x > thisX - halfTileWidth) and (x < thisX + halfTileHeight) and (y > (thisY - halfTileHeight) - h) and (y < thisY + halfTileHeight)
-                        and ((y < thisY) or y < (thisY + halfTileHeight) - isoPart)
-                        and ((y > thisY - h) or y > ((thisY - h) - halfTileHeight) + isoPart)
+            -- Check if the mouse is in the rect bounding box
+            local hit = (x > thisX - halfTileWidth) and (x < thisX + halfTileHeight) and (y > topY) and (y < bottomY)
+                        and ((y < thisY) or y < bottomY - isoPart) -- And not in the bottom excluded tris
+                        and ((y > thisY - h) or y > topY + isoPart) -- And not in the top excluded tris
 
             if hit then
                 self.selectedI = i
