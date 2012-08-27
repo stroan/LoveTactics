@@ -4,9 +4,9 @@
 -- to (row * colCound + col)
 --
 -- +----------------+
--- | 0| 1| 2| 3| 4|x|   Shows how the indexes fit into
+-- | 1| 2| 3| 4| 5|x|   Shows how the indexes fit into
 -- +----------------+   the base image. the 'x's mark
--- | 5| 6| 7| 8| 9|x|   dead space that doesn't evenly
+-- | 6| 7| 8| 9|10|x|   dead space that doesn't evenly
 -- +----------------+   fit.
 -- |       ...      |
 
@@ -43,5 +43,5 @@ function SpriteSheet:new(filename, tileWidth, tileHeight, centreX, centreY)
 end
 
 function SpriteSheet:draw(index, x, y)
-    love.graphics.drawq(self.img, self.quads[index + 1], x - self.centreX, y - self.centreY)
+    love.graphics.drawq(self.img, self.quads[index], x - self.centreX, y - self.centreY)
 end

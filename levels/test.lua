@@ -1,14 +1,13 @@
 local level = {}
 
 local tileSheet = SpriteSheet:new("images/tiles.png", 64, 64, 32, 48)
-local tileSprites = TileSprites:new(tileSheet, 0)
-tileSprites:setTileHeight(2, 16)
-tileSprites:setTileHeight(1, 32)
+local tileHeights = {0, 32, 16}
+local tileSprites = TileSprites:new(tileSheet, tileHeights)
 
-local map = {{0, 1, 2, 0, 0}
-		    ,{0, 0, 0, 0, 0}
-		    ,{0, 0, 2, 0, 0}
-		    ,{0, 2, 2, 0, 0}
-		    ,{0, 0, 0, 0, 0}}
+local map = {{1, 1, 3, 1, 1}
+		    ,{1, 1, 3, 1, 1}
+		    ,{1, 1, 3, 1, 1}
+		    ,{1, 1, 3, 1, 1}
+		    ,{3, 3, 3, 1, 1}}
 
 return TileMap:new(tileSprites, map)

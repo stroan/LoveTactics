@@ -15,7 +15,9 @@ function TileMap:new(tiles, map)
               , tiles = tiles
               , offsetX = 300
               , offsetY = 100
-              , map = map }
+              , map = map
+              , selectedI = 0
+              , selectedJ = 0}
     setmetatable(o, self)
     return o
 end
@@ -23,22 +25,64 @@ end
 function TileMap:draw()
     local tiles = self.tiles.spriteSheet
     local tileWidth = tiles.tileWidth
-    local tileHeight = tiles.tileHeight
+    local halfTileHeight = tileWidth / 4
+    local halfTileWidth = tileWidth / 2
 
     love.graphics.push()
     love.graphics.translate(self.offsetX, self.offsetY)
 
     for i=0,(self.depth-1) do
-        local thisX = (tileWidth / -2) * i
-        local thisY = (tileWidth / 4) * i
+        local thisX = halfTileWidth * -i
+        local thisY = halfTileHeight * i
         for j=0,(self.width-1) do
             tiles:draw(self.map[i + 1][j + 1], thisX, thisY)
-            thisX = thisX + (tileWidth / 2)
-            thisY = thisY + (tileWidth / 4)
+            thisX = thisX + halfTileWidth
+            thisY = thisY + halfTileHeight
         end
     end
 
+    selectedXY = self:ijToXY(self.selectedI, self.selectedJ)
+    love.graphics.setColor(255,0,0,255)
+    love.graphics.circle("fill", selectedXY.x, selectedXY.y, 10, 5)
+    love.graphics.setColor(255,255,255,255)
+
     love.graphics.pop()
+end
+
+function TileMap:ijToXY(i, j)
+    local tileWidth = self.tiles.spriteSheet.tileWidth
+    return {x = (tileWidth / 2) * (j - i), y = (tileWidth / 4) * (j + i)}
+end
+
+function TileMap:mouseOver(x, y)
+    local tiles = self.tiles.spriteSheet
+    local heights = self.tiles.heights
+    local tileWidth = tiles.tileWidth
+    local halfTileHeight = tileWidth / 4
+    local halfTileWidth = tileWidth / 2
+
+    x = x - self.offsetX;
+    y = y - self.offsetY;
+
+    for i=0,(self.depth-1) do
+        local thisX = halfTileWidth * -i
+        local thisY = halfTileHeight * i
+        for j=0,(self.width-1) do
+            local h = heights[self.map[i + 1][j + 1]]
+            local isoPart = (math.abs(thisX - x) / 2)
+
+            local hit = (x > thisX - halfTileWidth) and (x < thisX + halfTileHeight) and (y > (thisY - halfTileHeight) - h) and (y < thisY + halfTileHeight)
+                        and ((y < thisY) or y < (thisY + halfTileHeight) - isoPart)
+                        and ((y > thisY - h) or y > ((thisY - h) - halfTileHeight) + isoPart)
+
+            if hit then
+                self.selectedI = i
+                self.selectedJ = j
+            end
+            thisX = thisX + halfTileWidth
+            thisY = thisY + halfTileHeight
+        end
+    end
 end
 
 -- Wraps around a sprite sheet and contains information
@@ -46,24 +90,9 @@ end
 -- the height of the tile in pixels.
 TileSprites = {}
 TileSprites.__index = TileSprites
-function TileSprites:new(spriteSheet, defaultHeight) 
-    local o = { defaults = {height = defaultHeight}
-              , spriteSheet = spriteSheet
-              , tileProperties = {} }
+function TileSprites:new(spriteSheet, heights) 
+    local o = { spriteSheet = spriteSheet
+              , heights = heights }
     setmetatable(o, self)
     return o
-end
-
-function TileSprites:setTileHeight(index, height)
-    self:getTileProperties(index).height = height
-end
-
-function TileSprites:getTileProperties(index)
-    local p = self.tileProperties[index]
-    if not p then
-        p = {}
-        setmetatable(p, self.defaults)
-        self.tileProperties[index] = p
-    end
-    return p
 end
