@@ -1,25 +1,50 @@
 
 -- Coordinate System:
--- (i,j)     (0,0)
+-- (i,j)     (1,1)
 --           ,--,
--- (2,0) ,--'    '--, (0,2)
+-- (3,1) ,--'    '--, (1,3)
 --   ,--'            '--,
 --
 -- i axis = depth. j axis = width.
 
-TileMap = {}
+TileMap = { selectedI = 1
+          , selectedJ = 1 
+          , offsetX = 400
+          , offsetY = 200 }
 TileMap.__index = TileMap
 function TileMap:new(tiles, map) 
-    local o = { width = 5
-              , depth = 5
-              , tiles = tiles
-              , offsetX = 300
-              , offsetY = 100
+    local o = { tiles = tiles
               , map = map
-              , selectedI = 0
-              , selectedJ = 0}
+              , objects = {} }
     setmetatable(o, self)
     return o
+end
+
+function TileMap:addObject(object, i, j)
+    local row = self.objects[i] or {}
+    self.objects[i] = row
+    row[j] = object
+end
+
+function TileMap:process()
+    -- Get the size of the map
+    self.depth = table.getn(self.map)
+    self.width = table.getn(self.map[1])
+
+    -- Precalculate the height map
+    local heights = {}
+    for i=1,self.depth do
+        local row = {}
+        heights[i] = row
+        for j=1,self.width do
+            row[j] = self.tiles.heights[self.map[i][j]]
+            local o = (self.objects[i] or {})[j]
+            if o then
+                row[j] = row[j] + o.height
+            end
+        end
+    end
+    self.heights = heights
 end
 
 function TileMap:draw()
@@ -31,18 +56,23 @@ function TileMap:draw()
     love.graphics.push()
     love.graphics.translate(self.offsetX, self.offsetY)
 
-    for i=0,(self.depth-1) do
-        local thisX = halfTileWidth * -i
-        local thisY = halfTileHeight * i
-        for j=0,(self.width-1) do
-            tiles:draw(self.map[i + 1][j + 1], thisX, thisY)
+    for i=1,self.depth do
+        local thisX = halfTileWidth * -(i - 1)
+        local thisY = halfTileHeight * (i - 1)
+        for j=1,self.width do
+            tiles:draw(self.map[i][j], thisX, thisY)
+            local o = (self.objects[i] or {})[j]
+            if o then
+                local height = self.tiles.heights[self.map[i][j]]
+                o:draw(thisX, thisY - height)
+            end
             thisX = thisX + halfTileWidth
             thisY = thisY + halfTileHeight
         end
     end
 
     local selectedXY = self:ijToXY(self.selectedI, self.selectedJ)
-    local h = self.tiles.heights[self.map[self.selectedI + 1][self.selectedJ + 1]]
+    local h = self.heights[self.selectedI][self.selectedJ]
     love.graphics.setColor(255,0,0,255)
     love.graphics.circle("fill", selectedXY.x, selectedXY.y - h, 10, 5)
     love.graphics.setColor(255,255,255,255)
@@ -52,6 +82,8 @@ end
 
 function TileMap:ijToXY(i, j)
     local tileWidth = self.tiles.spriteSheet.tileWidth
+    i = i - 1
+    j = j - 1
     return {x = (tileWidth / 2) * (j - i), y = (tileWidth / 4) * (j + i)}
 end
 
@@ -59,7 +91,7 @@ end
 -- May have to optimize at some point, probably not though.
 function TileMap:mouseOver(x, y)
     local tiles = self.tiles.spriteSheet
-    local heights = self.tiles.heights
+    local heights = self.heights
     local tileWidth = tiles.tileWidth
     local halfTileHeight = tileWidth / 4
     local halfTileWidth = tileWidth / 2
@@ -67,11 +99,11 @@ function TileMap:mouseOver(x, y)
     x = x - self.offsetX;
     y = y - self.offsetY;
 
-    for i=0,(self.depth-1) do
-        local thisX = halfTileWidth * -i
-        local thisY = halfTileHeight * i
-        for j=0,(self.width-1) do
-            local h = heights[self.map[i + 1][j + 1]]
+    for i=1,self.depth do
+        local thisX = halfTileWidth * -(i - 1)
+        local thisY = halfTileHeight * (i - 1)
+        for j=1,self.width do
+            local h = heights[i][j]
             local isoPart = (math.abs(thisX - x) / 2)
             local topY = (thisY - halfTileHeight) - h
             local bottomY = thisY + halfTileHeight
@@ -101,4 +133,18 @@ function TileSprites:new(spriteSheet, heights)
               , heights = heights }
     setmetatable(o, self)
     return o
+end
+
+TileObject = {}
+TileObject.__index = TileObject
+function TileObject:new(spriteSheet, index, height)
+    local o = { spriteSheet = spriteSheet
+              , index = index
+              , height = height }
+    setmetatable(o, self)
+    return o
+end
+
+function TileObject:draw(x, y)
+    self.spriteSheet:draw(self.index, x, y)
 end
