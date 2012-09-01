@@ -12,11 +12,16 @@ TileMap = { selectedI = 1
           , offsetX = 400
           , offsetY = 200 }
 TileMap.__index = TileMap
-function TileMap:new(tiles, map) 
-    local o = { tiles = tiles
+function TileMap:new(tilesName, map, objects, spawnPoints) 
+    local o = { tilesName = tilesName
               , map = map
               , objects = {} }
     setmetatable(o, self)
+
+    for _,v in pairs(objects) do
+        o:addObject(v[1], v[2], v[3])
+    end
+
     return o
 end
 
@@ -26,7 +31,10 @@ function TileMap:addObject(object, i, j)
     row[j] = object
 end
 
-function TileMap:process()
+function TileMap:process(resourceLoader)
+    -- Load the resource details
+    self.tiles = resourceLoader:getTileSheet(self.tilesName)
+
     -- Get the size of the map
     self.depth = table.getn(self.map)
     self.width = table.getn(self.map[1])
@@ -40,6 +48,8 @@ function TileMap:process()
             row[j] = self.tiles.heights[self.map[i][j]]
             local o = (self.objects[i] or {})[j]
             if o then
+                o = resourceLoader:getObject(o)
+                self.objects[i][j] = o
                 row[j] = row[j] + o.height
             end
         end
