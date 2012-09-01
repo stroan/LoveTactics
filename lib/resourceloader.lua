@@ -1,3 +1,6 @@
+require 'lib/spritesheet'
+require 'lib/tilemap'
+
 local tileSheets = {
 	tiles = {fileName = "images/tiles.png"
             ,tileWidth = 64

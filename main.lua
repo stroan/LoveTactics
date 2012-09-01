@@ -1,18 +1,20 @@
-require 'lib/spritesheet'
-require 'lib/tilemap'
-require 'lib/resourceloader'
+require 'lib/server'
+require 'lib/client'
+
+local state = {}
 
 function love.load()
     love.graphics.setBackgroundColor(0,0,0)
-    lvl = loadfile("levels/test.lua")()
-    lvl:process(ResourceLoader:new(true))
+    state.server = Server:new()
+    state.client = Client:new(state.server)
+
+    state.server:setLevel("levels/test.lua")
 end
 
 function love.update(dt)
-    lvl:mouseOver(love.mouse.getX(), love.mouse.getY())
+    state.client:update(dt)
 end
 
 function love.draw()
-    love.graphics.clear()
-    lvl:draw()
+    state.client:draw()
 end
