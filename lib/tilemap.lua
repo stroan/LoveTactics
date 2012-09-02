@@ -165,6 +165,13 @@ function TileMap:moveDynObject(object, i, j)
     o.j = j
 end
 
+function TileMap:removeDynObject(object)
+    local o = self.dynObjects[object]
+    local sourceCell = self:getDynObjectCell(o.i, o.j)
+    self.dynObjects[o] = nil
+    sourceCell[object] = nil
+end
+
 -- Wraps around a sprite sheet and contains information
 -- about the nature of each tile. In particular it stores
 -- the height of the tile in pixels.

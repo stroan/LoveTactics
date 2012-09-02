@@ -17,12 +17,17 @@ function Server:beginMatch(levelName)
 
 	local spawnPoints = levelFile.spawnPoints
 
+	local spawnIndex = 1
 	self.matchState = MatchState:new(self.level)
 
 	-- Initialize the matchState
 	for k,c in pairs(self.clients) do
 		self.matchState:addTeam(k)
-		self.matchState:addTeamMember(k, "character1", spawnPoints[1][1], spawnPoints[1][2])
+		self.matchState:addTeamMember(k, "character1", spawnPoints[spawnIndex][1], spawnPoints[spawnIndex][2])
+		if spawnIndex == 1 then
+			self.matchState.currentTeam = k
+		end
+		spawnIndex = spawnIndex + 1
 	end
 
     -- Inform all clients of the teams and the players
@@ -34,6 +39,7 @@ function Server:beginMatch(levelName)
 				c1:addTeamMember(k2, charName, char.i, char.j)
 			end
 		end
+		c1:setActiveTeamMember(self.matchState.currentTeam, "character1")
 	end
 end
 

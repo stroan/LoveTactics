@@ -32,7 +32,6 @@ function Client:beginMatch(levelName)
 	self.level = loadfile(levelName)().map
 	self.level:process(ResourceLoader:new(true))
 	self.matchState = MatchState:new(self.level)
-	self.level:addDynObject(self.cursor, 1, 1)
 end
 
 function Client:addTeam(name)
@@ -41,8 +40,22 @@ end
 
 function Client:addTeamMember(team, name, i, j)
 	local m = self.matchState:addTeamMember(team, name, i, j)
-	m.drawable = PlayerDrawable:new()
+	colour = {0,255,0}
+	if team == self.id then
+		colour = {0,0,255}
+	end
+	m.drawable = PlayerDrawable:new(colour)
 	self.level:addDynObject(m.drawable, i, j)
+end
+
+function Client:setActiveTeamMember(team, character)
+	self.matchState.currentTeam = team
+	self.matchState.currentMember = character
+	if team == self.id then
+		self.level:addDynObject(self.cursor, 1, 1)
+	else
+		self.level:removeDynObject(self.cursor)
+	end
 end
 
 Cursor = {}
@@ -61,14 +74,14 @@ end
 
 PlayerDrawable = {}
 PlayerDrawable.__index = PlayerDrawable
-function PlayerDrawable:new()
-	local o = {}
+function PlayerDrawable:new(colour)
+	local o = {colour = colour}
 	setmetatable(o, self)
 	return o
 end
 
 function PlayerDrawable:draw(x, y)
-	love.graphics.setColor(0,255,0,255)
+	love.graphics.setColor(self.colour[1],self.colour[2],self.colour[3],255)
     love.graphics.circle("fill", x, y, 10, 5)
     love.graphics.setColor(255,255,255,255)
 end
