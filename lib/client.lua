@@ -1,6 +1,8 @@
 require 'lib/resourceloader'
 require 'lib/matchstate'
 
+local SCROLL_SPEED = 100
+
 Client = {}
 Client.__index = Client
 function Client:new(server)
@@ -17,8 +19,21 @@ end
 
 function Client:update(dt)
 	local coords = self.level:mouseOver(love.mouse.getX(), love.mouse.getY())
-	if coords then
+	if coords and self.matchState.currentTeam == self.id then
 		self.level:moveDynObject(self.cursor, coords.i, coords.j)
+	end
+
+	if love.keyboard.isDown('up') then
+		self.level.offsetY = self.level.offsetY - (SCROLL_SPEED * dt)
+	end
+	if love.keyboard.isDown('down') then
+		self.level.offsetY = self.level.offsetY + (SCROLL_SPEED * dt)
+	end
+	if love.keyboard.isDown('left') then
+		self.level.offsetX = self.level.offsetX - (SCROLL_SPEED * dt)
+	end
+	if love.keyboard.isDown('right') then
+		self.level.offsetX = self.level.offsetX + (SCROLL_SPEED * dt)
 	end
 end
 

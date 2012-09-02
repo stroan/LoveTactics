@@ -64,7 +64,7 @@ function TileMap:draw()
     local halfTileWidth = tileWidth / 2
 
     love.graphics.push()
-    love.graphics.translate(self.offsetX, self.offsetY)
+    love.graphics.translate(math.floor(self.offsetX), math.floor(self.offsetY))
 
     for i=1,self.depth do
         local thisX = halfTileWidth * -(i - 1)
@@ -167,9 +167,11 @@ end
 
 function TileMap:removeDynObject(object)
     local o = self.dynObjects[object]
-    local sourceCell = self:getDynObjectCell(o.i, o.j)
-    self.dynObjects[o] = nil
-    sourceCell[object] = nil
+    if o then 
+        local sourceCell = self:getDynObjectCell(o.i, o.j)
+        self.dynObjects[o] = nil
+        sourceCell[object] = nil
+    end
 end
 
 -- Wraps around a sprite sheet and contains information
