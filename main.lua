@@ -8,7 +8,7 @@ function love.load()
     state.server = Server:new()
     state.client = Client:new(state.server)
 
-    state.server:setLevel("levels/test.lua")
+    state.server:beginMatch("levels/test.lua")
 end
 
 function love.update(dt)

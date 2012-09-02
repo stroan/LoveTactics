@@ -12,6 +12,7 @@ local objects = {{'bigObject', 1, 1}
                 ,{'bigObject', 3, 2}
                 ,{'bigObject', 1, 5}}
 
-local spawnPoints = {{4,4}}
+local spawnPoints = {{5,5}}
 
-return TileMap:new('tiles', map, objects, spawnPoints)
+return { map = TileMap:new('tiles', map, objects)
+       , spawnPoints = spawnPoints }

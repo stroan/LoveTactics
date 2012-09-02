@@ -7,15 +7,15 @@
 --
 -- i axis = depth. j axis = width.
 
-TileMap = { selectedI = 1
-          , selectedJ = 1 
-          , offsetX = 400
+TileMap = { offsetX = 400
           , offsetY = 200 }
 TileMap.__index = TileMap
-function TileMap:new(tilesName, map, objects, spawnPoints) 
+function TileMap:new(tilesName, map, objects) 
     local o = { tilesName = tilesName
               , map = map
-              , objects = {} }
+              , objects = {}
+              , dynObjects = {}
+              , dynObjectMap = {} }
     setmetatable(o, self)
 
     for _,v in pairs(objects) do
@@ -76,16 +76,15 @@ function TileMap:draw()
                 local height = self.tiles.heights[self.map[i][j]]
                 o:draw(thisX, thisY - height)
             end
+
+            local dynCell = self:getDynObjectCell(i, j)
+            for k,_ in pairs(dynCell) do
+                k:draw(thisX, thisY - self.heights[i][j])
+            end
             thisX = thisX + halfTileWidth
             thisY = thisY + halfTileHeight
         end
     end
-
-    local selectedXY = self:ijToXY(self.selectedI, self.selectedJ)
-    local h = self.heights[self.selectedI][self.selectedJ]
-    love.graphics.setColor(255,0,0,255)
-    love.graphics.circle("fill", selectedXY.x, selectedXY.y - h, 10, 5)
-    love.graphics.setColor(255,255,255,255)
 
     love.graphics.pop()
 end
@@ -109,6 +108,10 @@ function TileMap:mouseOver(x, y)
     x = x - self.offsetX;
     y = y - self.offsetY;
 
+    local selectedI = nil
+    local selectedJ = nil
+    local match = false
+
     for i=1,self.depth do
         local thisX = halfTileWidth * -(i - 1)
         local thisY = halfTileHeight * (i - 1)
@@ -124,13 +127,42 @@ function TileMap:mouseOver(x, y)
                         and ((y > thisY - h) or y > topY + isoPart) -- And not in the top excluded tris
 
             if hit then
-                self.selectedI = i
-                self.selectedJ = j
+                match = true
+                selectedI = i
+                selectedJ = j
             end
             thisX = thisX + halfTileWidth
             thisY = thisY + halfTileHeight
         end
     end
+
+    if match then
+        return {i = selectedI, j = selectedJ}
+    end
+end
+
+function TileMap:getDynObjectCell(i, j)
+    local row = self.dynObjectMap[i] or {}
+    self.dynObjectMap[i] = row
+    local cell = row[j] or {}
+    row[j] = cell
+    return cell
+end
+
+function TileMap:addDynObject(object, i, j)
+    local cell = self:getDynObjectCell(i, j)
+    cell[object] = true
+    self.dynObjects[object] = {i = i, j = j}
+end
+
+function TileMap:moveDynObject(object, i, j)
+    local o = self.dynObjects[object]
+    local sourceCell = self:getDynObjectCell(o.i, o.j)
+    sourceCell[object] = nil
+    local destCell = self:getDynObjectCell(i, j)
+    destCell[object] = true
+    o.i = i
+    o.j = j
 end
 
 -- Wraps around a sprite sheet and contains information

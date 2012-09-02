@@ -1,4 +1,5 @@
 require 'lib/resourceloader'
+require 'lib/matchstate'
 
 Server = {}
 Server.__index = Server
@@ -8,16 +9,34 @@ function Server:new()
 	return o
 end
 
-function Server:setLevel(levelName)
+function Server:beginMatch(levelName)
 	self.levelName = levelName
-	self.level = loadfile(levelName)()
+	local levelFile = loadfile(levelName)()
+	self.level = levelFile.map
 	self.level:process(ResourceLoader:new(false))
 
-	for _,c in ipairs(self.clients) do
-		c:setLevel(levelName)
+	local spawnPoints = levelFile.spawnPoints
+
+	self.matchState = MatchState:new(self.level)
+
+	-- Initialize the matchState
+	for k,c in pairs(self.clients) do
+		self.matchState:addTeam(k)
+		self.matchState:addTeamMember(k, "character1", spawnPoints[1][1], spawnPoints[1][2])
+	end
+
+    -- Inform all clients of the teams and the players
+	for k1,c1 in pairs(self.clients) do
+		c1:beginMatch(levelName)
+		for k2,c2 in pairs(self.clients) do
+			c1:addTeam(k2)
+			for charName,char in pairs(self.matchState.teams[k2]) do
+				c1:addTeamMember(k2, charName, char.i, char.j)
+			end
+		end
 	end
 end
 
 function Server:connectClient(client)
-	table.insert(self.clients, client)
+	self.clients[client.id] = client
 end
