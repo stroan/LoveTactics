@@ -10,9 +10,10 @@
 TileMap = { offsetX = 400
           , offsetY = 200 }
 TileMap.__index = TileMap
-function TileMap:new(tilesName, map, objects) 
+function TileMap:new(tilesName, map, baseHeight, objects) 
     local o = { tilesName = tilesName
               , map = map
+              , baseHeight = baseHeight
               , objects = {}
               , dynObjects = {}
               , dynObjectMap = {} }
@@ -45,7 +46,7 @@ function TileMap:process(resourceLoader)
         local row = {}
         heights[i] = row
         for j=1,self.width do
-            row[j] = self.tiles.heights[self.map[i][j]]
+            row[j] = self.tiles.heights[self.map[i][j]] + self.baseHeight[i][j]
             local o = (self.objects[i] or {})[j]
             if o then
                 o = resourceLoader:getObject(o)
@@ -70,10 +71,11 @@ function TileMap:draw()
         local thisX = halfTileWidth * -(i - 1)
         local thisY = halfTileHeight * (i - 1)
         for j=1,self.width do
-            tiles:draw(self.map[i][j], thisX, thisY)
+            local height = self.baseHeight[i][j]
+            tiles:draw(self.map[i][j], thisX, thisY - height)
             local o = (self.objects[i] or {})[j]
             if o then
-                local height = self.tiles.heights[self.map[i][j]]
+                height = height + self.tiles.heights[self.map[i][j]]
                 o:draw(thisX, thisY - height)
             end
 
