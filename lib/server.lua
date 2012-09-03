@@ -46,3 +46,23 @@ end
 function Server:connectClient(client)
 	self.clients[client.id] = client
 end
+
+function Server:tryMove(team, character, i, j)
+	local c = self.matchState.teams[team][character]
+	c.i = i
+	c.j = j
+
+	for k,c in pairs(self.clients) do
+		c:moveCharacter(team, character, i, j)
+	end
+
+	self:endTurn(self.matchState.currentTeam)
+end
+
+function Server:endTurn(team)
+	self.matchState.currentTeam = self.matchState:getNextTeam()
+
+	for k,c in pairs(self.clients) do
+		c:setActiveTeamMember(self.matchState.currentTeam, "character1")
+	end
+end

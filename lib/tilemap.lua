@@ -78,9 +78,10 @@ function TileMap:draw()
             end
 
             local dynCell = self:getDynObjectCell(i, j)
-            for k,_ in pairs(dynCell) do
-                k:draw(thisX, thisY - self.heights[i][j])
+            for _,v in pairs(dynCell) do
+                v:draw(thisX, thisY - self.heights[i][j])
             end
+
             thisX = thisX + halfTileWidth
             thisY = thisY + halfTileHeight
         end
@@ -151,26 +152,35 @@ end
 
 function TileMap:addDynObject(object, i, j)
     local cell = self:getDynObjectCell(i, j)
-    cell[object] = true
+    local index = 1
+    for k,v in ipairs(cell) do
+        index = k
+        if v.zIndex > object.zIndex then
+            break
+        end
+    end
+    table.insert(cell, index, object)
     self.dynObjects[object] = {i = i, j = j}
 end
 
 function TileMap:moveDynObject(object, i, j)
-    local o = self.dynObjects[object]
-    local sourceCell = self:getDynObjectCell(o.i, o.j)
-    sourceCell[object] = nil
-    local destCell = self:getDynObjectCell(i, j)
-    destCell[object] = true
-    o.i = i
-    o.j = j
+    self:removeDynObject(object)
+    self:addDynObject(object, i, j)
 end
 
 function TileMap:removeDynObject(object)
     local o = self.dynObjects[object]
-    if o then 
-        local sourceCell = self:getDynObjectCell(o.i, o.j)
-        self.dynObjects[o] = nil
-        sourceCell[object] = nil
+    if o then
+        local cell = self:getDynObjectCell(o.i, o.j)
+        local index = 1
+        for k,v in ipairs(cell) do
+            index = k
+            if v == object then
+                break
+            end
+        end
+        table.remove(cell, index)
+        self.dynObjects[object] = nil
     end
 end
 
@@ -188,10 +198,11 @@ end
 
 TileObject = {}
 TileObject.__index = TileObject
-function TileObject:new(spriteSheet, index, height)
+function TileObject:new(spriteSheet, index, height, zIndex)
     local o = { spriteSheet = spriteSheet
               , index = index
-              , height = height }
+              , height = height
+              , zIndex =  zIndex or 10}
     setmetatable(o, self)
     return o
 end

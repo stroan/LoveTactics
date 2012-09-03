@@ -6,10 +6,12 @@ local SCROLL_SPEED = 100
 Client = {}
 Client.__index = Client
 function Client:new(server)
-	o = { server = server
-        , id = "LOCAL"
-        , cursor = Cursor:new()
-        , drawables = {}}
+	local resourceLoader = ResourceLoader:new(true)
+	local o = { server = server
+              , id = "LOCAL"
+              , cursor = Cursor:new()
+              , selector = resourceLoader:getObject('selector')
+              , resourceLoader = resourceLoader }
 	setmetatable(o, self)
 
 	server:connectClient(o)
@@ -19,10 +21,22 @@ end
 
 function Client:update(dt)
 	local coords = self.level:mouseOver(love.mouse.getX(), love.mouse.getY())
-	if coords and self.matchState.currentTeam == self.id then
-		self.level:moveDynObject(self.cursor, coords.i, coords.j)
+	local activeMember = self.matchState:getCurrentMember()
+	local canMove = self.matchState:canMove(coords)
+	local isMyTurn = self.matchState.currentTeam == self.id
+
+	-- Update cursor position
+	self.level:removeDynObject(self.cursor)
+	if isMyTurn and canMove then
+		self.level:addDynObject(self.cursor, coords.i, coords.j)
 	end
 
+	-- Handle clicks
+	if love.mouse.isDown('l') and isMyTurn and canMove then
+		self.server:tryMove(self.matchState.currentTeam, self.matchState.currentMember, coords.i, coords.j)
+	end
+
+	-- Scroll map around with keyboard
 	if love.keyboard.isDown('up') then
 		self.level.offsetY = self.level.offsetY - (SCROLL_SPEED * dt)
 	end
@@ -40,12 +54,22 @@ end
 function Client:draw()
 	love.graphics.clear()
 	self.level:draw()
+
+    local y = 10
+	for k,_ in pairs(self.matchState.teams) do
+		local t = k
+		if self.matchState.currentTeam == k then
+			t = t .. ' < '
+		end
+		love.graphics.print(t,10,y)
+		y = y + 15
+	end
 end
 
 function Client:beginMatch(levelName)
 	self.levelName = levelName
 	self.level = loadfile(levelName)().map
-	self.level:process(ResourceLoader:new(true))
+	self.level:process(self.resourceLoader)
 	self.matchState = MatchState:new(self.level)
 end
 
@@ -67,16 +91,27 @@ function Client:setActiveTeamMember(team, character)
 	self.matchState.currentTeam = team
 	self.matchState.currentMember = character
 	if team == self.id then
-		self.level:addDynObject(self.cursor, 1, 1)
+		local char = self.matchState.teams[team][character]
+		self.level:addDynObject(self.selector, char.i, char.j)
 	else
-		self.level:removeDynObject(self.cursor)
+		self.level:removeDynObject(self.selector)
+	end
+end
+
+function Client:moveCharacter(team, character, i, j)
+	local c = self.matchState.teams[team][character]
+	c.i = i
+	c.j = j
+	self.level:moveDynObject(c.drawable, i, j)
+	if self.matchState.currentTeam == self.id then
+		self.level:moveDynObject(self.selector, i, j)
 	end
 end
 
 Cursor = {}
 Cursor.__index = Cursor
 function Cursor:new()
-	local o = {}
+	local o = {zIndex = 40}
 	setmetatable(o, self)
 	return o
 end
@@ -90,7 +125,8 @@ end
 PlayerDrawable = {}
 PlayerDrawable.__index = PlayerDrawable
 function PlayerDrawable:new(colour)
-	local o = {colour = colour}
+	local o = {colour = colour
+              ,zIndex = 20}
 	setmetatable(o, self)
 	return o
 end

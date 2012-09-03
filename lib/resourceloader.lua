@@ -11,12 +11,18 @@ local tileSheets = {
 }
 
 local objects = {
-	bigObject = {fileName = "images/big_object.png"
-                ,objectWidth = 64
-                ,objectHeight = 128
-                ,centreX = 32
-                ,centreY = 112
-                ,height = 96}
+	bigObject = { fileName = "images/big_object.png"
+                , objectWidth = 64
+                , objectHeight = 128
+                , centreX = 32
+                , centreY = 112
+                , height = 96 } ,
+    selector = { fileName = "images/selector.png"
+               , objectWidth = 64 
+               , objectHeight = 64
+               , centreX = 32
+               , centreY = 48 
+               , height = 0 }
 }
 
 ResourceLoader = {}

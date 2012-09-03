@@ -15,6 +15,7 @@ end
 
 function love.update(dt)
     state.client:update(dt)
+    state.dummyClient:update(dt)
 end
 
 function love.draw()
