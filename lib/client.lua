@@ -38,16 +38,16 @@ function Client:update(dt)
 
 	-- Scroll map around with keyboard
 	if love.keyboard.isDown('up') then
-		self.level.offsetY = self.level.offsetY - (SCROLL_SPEED * dt)
-	end
-	if love.keyboard.isDown('down') then
 		self.level.offsetY = self.level.offsetY + (SCROLL_SPEED * dt)
 	end
+	if love.keyboard.isDown('down') then
+		self.level.offsetY = self.level.offsetY - (SCROLL_SPEED * dt)
+	end
 	if love.keyboard.isDown('left') then
-		self.level.offsetX = self.level.offsetX - (SCROLL_SPEED * dt)
+		self.level.offsetX = self.level.offsetX + (SCROLL_SPEED * dt)
 	end
 	if love.keyboard.isDown('right') then
-		self.level.offsetX = self.level.offsetX + (SCROLL_SPEED * dt)
+		self.level.offsetX = self.level.offsetX - (SCROLL_SPEED * dt)
 	end
 end
 
