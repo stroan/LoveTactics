@@ -19,6 +19,12 @@ function Client:new(server)
 	return o
 end
 
+function Client:requestTeam()
+	local team = {character1 = {}
+                 ,character2 = {}}
+    self.server:setTeam(self.id, team)
+end
+
 function Client:update(dt)
 	local coords = self.level:mouseOver(love.mouse.getX(), love.mouse.getY())
 	local activeMember = self.matchState:getCurrentMember()
@@ -59,14 +65,14 @@ function Client:draw()
 	for k,_ in pairs(self.matchState.teams) do
 		local t = k
 		if self.matchState.currentTeam == k then
-			t = t .. ' < '
+			t = t .. ' < ' .. self.matchState.currentMember
 		end
 		love.graphics.print(t,10,y)
 		y = y + 15
 	end
 end
 
-function Client:beginMatch(levelName)
+function Client:prepMatch(levelName)
 	self.levelName = levelName
 	self.level = loadfile(levelName)().map
 	self.level:process(self.resourceLoader)
@@ -88,10 +94,9 @@ function Client:addTeamMember(team, name, i, j)
 end
 
 function Client:setActiveTeamMember(team, character)
-	self.matchState.currentTeam = team
-	self.matchState.currentMember = character
+	self.matchState:setActiveTeamMember(team, character)
 	if team == self.id then
-		local char = self.matchState.teams[team][character]
+		local char = self.matchState.teams[team].members[character]
 		self.level:addDynObject(self.selector, char.i, char.j)
 	else
 		self.level:removeDynObject(self.selector)
@@ -99,7 +104,7 @@ function Client:setActiveTeamMember(team, character)
 end
 
 function Client:moveCharacter(team, character, i, j)
-	local c = self.matchState.teams[team][character]
+	local c = self.matchState.teams[team].members[character]
 	c.i = i
 	c.j = j
 	self.level:moveDynObject(c.drawable, i, j)

@@ -1,8 +1,9 @@
 require 'lib/server'
 require 'lib/client'
 require 'lib/dummyclient'
+require 'lib/inspect'
 
-local state = {}
+state = {}
 
 function love.load()
     love.graphics.setBackgroundColor(0,0,0)
@@ -10,7 +11,7 @@ function love.load()
     state.client = Client:new(state.server)
     state.dummyClient = DummyClient:new(state.server)
 
-    state.server:beginMatch("levels/test.lua")
+    state.server:prepMatch("levels/test.lua")
 end
 
 function love.update(dt)

@@ -12,12 +12,19 @@ setmetatable(DummyClient, DummyClientParent)
 function DummyClient:new(server)
 	local o = { id = "DUMMY"
 	          , server = server
-	          , timer = false }
+	          , timer = false
+	          , team = {} }
 	setmetatable(o, self)
 
 	server:connectClient(o)
 
 	return o
+end
+
+function DummyClient:requestTeam()
+	local team = {ai1 = {}
+                 ,ai2 = {}}
+    self.server:setTeam(self.id, team)
 end
 
 function DummyClient:update(dt)
