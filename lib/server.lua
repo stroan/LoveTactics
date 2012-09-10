@@ -80,22 +80,13 @@ function Server:setTeam(clientName, team)
 end
 
 function Server:tryMove(team, character, i, j)
-  print("pre move")
-  print(inspect(self.matchState.teams[team].members[character]))
-
   local c = self.matchState:move(team, character, i, j)
-
-  print("tried move1")
-  print(inspect(c))
 
   for k,c in pairs(self.clients) do
     c:moveCharacter(team, character, i, j)
   end
 
-  print("tried move2")
-  print(inspect(c))
   if c.state.currentAP == 0 then
-    print ("changed team")
     self:endTurn(self.matchState.currentTeam)
   end
 end
