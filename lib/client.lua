@@ -71,7 +71,7 @@ function Client:prepMatch(levelName)
   self.level:process(self.resourceLoader)
   self.matchState = MatchState:new(self.level)
 
-  local members = { {}, {} }
+  local members = { {baseAP = 4}, {baseAP = 5} }
   self.server:setTeam(self.id, members)
 end
 
@@ -83,8 +83,8 @@ function Client:addTeam(name)
   self.matchState:addTeam(name)
 end
 
-function Client:addTeamMember(team, name, i, j)
-  local m = self.matchState:addTeamMember(team, name, i, j)
+function Client:addTeamMember(team, name, details, i, j)
+  local m = self.matchState:addTeamMember(team, name, details, i, j)
   colour = {0,255,0}
   if team == self.id then
     colour = {0,0,255}
@@ -104,9 +104,7 @@ function Client:setActiveTeamMember(team, character)
 end
 
 function Client:moveCharacter(team, character, i, j)
-  local c = self.matchState.teams[team].members[character]
-  c.i = i
-  c.j = j
+  local c = self.matchState:move(team, character, i, j)
   self.level:moveDynObject(c.drawable, i, j)
   if self.matchState.currentTeam == self.id then
     self.level:moveDynObject(self.selector, i, j)

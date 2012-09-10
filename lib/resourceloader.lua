@@ -18,10 +18,10 @@ local objects = {
               , centreY = 112
               , height = 96 } ,
   selector = { fileName = "images/selector.png"
-             , objectWidth = 64 
+             , objectWidth = 64
              , objectHeight = 64
              , centreX = 32
-             , centreY = 48 
+             , centreY = 48
              , height = 0 }
 }
 

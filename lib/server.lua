@@ -40,8 +40,8 @@ function Server:startMatch()
     local teamSpawnIndex = 1
 
     for tk,tv in pairs(c.team) do
-      self.matchState:addTeamMember(k, tk, teamSpawnPoints[teamSpawnIndex][1],
-                                           teamSpawnPoints[teamSpawnIndex][2])
+      self.matchState:addTeamMember(k, tk, tv, teamSpawnPoints[teamSpawnIndex][1],
+                                               teamSpawnPoints[teamSpawnIndex][2])
       if teamSpawnIndex == 1 and spawnIndex == 1 then
         self.matchState:setActiveTeamMember(k, tk)
       end
@@ -57,7 +57,7 @@ function Server:startMatch()
     for k2,c2 in pairs(self.clients) do
       c1:addTeam(k2)
       for charName,char in pairs(self.matchState.teams[k2].members) do
-        c1:addTeamMember(k2, charName, char.i, char.j)
+        c1:addTeamMember(k2, charName, char.details, char.i, char.j)
       end
     end
     c1:setActiveTeamMember(self.matchState.currentTeam, self.matchState.currentMember)
@@ -80,15 +80,24 @@ function Server:setTeam(clientName, team)
 end
 
 function Server:tryMove(team, character, i, j)
-  local c = self.matchState.teams[team].members[character]
-  c.i = i
-  c.j = j
+  print("pre move")
+  print(inspect(self.matchState.teams[team].members[character]))
+
+  local c = self.matchState:move(team, character, i, j)
+
+  print("tried move1")
+  print(inspect(c))
 
   for k,c in pairs(self.clients) do
     c:moveCharacter(team, character, i, j)
   end
 
-  self:endTurn(self.matchState.currentTeam)
+  print("tried move2")
+  print(inspect(c))
+  if c.state.currentAP == 0 then
+    print ("changed team")
+    self:endTurn(self.matchState.currentTeam)
+  end
 end
 
 function Server:endTurn(team)

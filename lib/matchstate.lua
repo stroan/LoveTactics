@@ -14,9 +14,11 @@ function MatchState:addTeam(teamName)
   self.teamCount = self.teamCount + 1
 end
 
-function MatchState:addTeamMember(teamName, characterId, i, j)
+function MatchState:addTeamMember(teamName, characterId, details, i, j)
   local team = self.teams[teamName]
-  local obj = {id = characterId, i = i, j = j}
+  local obj = {id = characterId, details = details, 
+               i = i, j = j,
+               state = {}}
   team.members[characterId] = obj
   team.memberCount = team.memberCount + 1
   return obj
@@ -26,6 +28,9 @@ function MatchState:setActiveTeamMember(team, character)
   self.currentTeam = team
   self.currentMember = character
   self.teams[team].lastMember = character
+
+  local c = self.teams[team].members[character]
+  c.state.currentAP = c.details.baseAP
 end
 
 function MatchState:getCurrentMember()
@@ -46,6 +51,15 @@ function MatchState:canMove(coords)
   end
 
   return true
+end
+
+function MatchState:move(team, character, i, j)
+  print("this moving")
+  local c = self.teams[team].members[character]
+  c.i = i
+  c.j = j
+  c.state.currentAP = c.state.currentAP - 1
+  return c
 end
 
 function MatchState:getNextTeam()
