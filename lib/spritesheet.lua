@@ -13,39 +13,39 @@
 SpriteSheet = {}
 SpriteSheet.__index = SpriteSheet
 function SpriteSheet:new(filename, tileWidth, tileHeight, centreX, centreY)
-    local o = { filename = filename
-              , tileWidth = tileWidth
-              , tileHeight = tileHeight
-              , centreX = centreX
-              , centreY = centreY }
-    setmetatable(o, self)
-    return o
+  local o = { filename = filename
+            , tileWidth = tileWidth
+            , tileHeight = tileHeight
+            , centreX = centreX
+            , centreY = centreY }
+  setmetatable(o, self)
+  return o
 end
 
 function SpriteSheet:load()
-    local img = love.graphics.newImage(self.filename)
-    local imgWidth = img:getWidth()
-    local imgHeight = img:getHeight()
+  local img = love.graphics.newImage(self.filename)
+  local imgWidth = img:getWidth()
+  local imgHeight = img:getHeight()
 
-    -- Generate quads for the tiles
-    local cols = math.floor(imgWidth / self.tileWidth)
-    local rows = math.floor(imgHeight / self.tileHeight)
-    local quads = {}
-    local i = 1
+  -- Generate quads for the tiles
+  local cols = math.floor(imgWidth / self.tileWidth)
+  local rows = math.floor(imgHeight / self.tileHeight)
+  local quads = {}
+  local i = 1
 
-    for y=0,(rows-1) do
-        local ycoord = self.tileHeight * y
-        for x=0,(cols-1) do
-            local xcoord = self.tileWidth * x
-            quads[i] = love.graphics.newQuad(xcoord, ycoord, self.tileWidth, self.tileHeight, imgWidth, imgHeight)
-            i = i + 1
-        end
+  for y=0,(rows-1) do
+    local ycoord = self.tileHeight * y
+    for x=0,(cols-1) do
+      local xcoord = self.tileWidth * x
+      quads[i] = love.graphics.newQuad(xcoord, ycoord, self.tileWidth, self.tileHeight, imgWidth, imgHeight)
+      i = i + 1
     end
+  end
 
-    self.img = img
-    self.quads = quads
+  self.img = img
+  self.quads = quads
 end
 
 function SpriteSheet:draw(index, x, y)
-    love.graphics.drawq(self.img, self.quads[index], x - self.centreX, y - self.centreY)
+  love.graphics.drawq(self.img, self.quads[index], x - self.centreX, y - self.centreY)
 end

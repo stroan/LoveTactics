@@ -1,5 +1,5 @@
 local function catchAll()
-	return function() end
+  return function() end
 end
 
 local DummyClientParent = {}
@@ -10,38 +10,38 @@ DummyClient.__index = DummyClient
 setmetatable(DummyClient, DummyClientParent)
 
 function DummyClient:new(server)
-	local o = { id = "DUMMY"
-	          , server = server
-	          , timer = false
-	          , team = {} }
-	setmetatable(o, self)
+  local o = { id = "DUMMY"
+            , server = server
+            , timer = false
+            , team = {} }
+  setmetatable(o, self)
 
-	server:connectClient(o)
+  server:connectClient(o)
 
-	return o
+  return o
 end
 
 function DummyClient:setTeamId(id)
-	self.id = id
+  self.id = id
 end
 
 function DummyClient:prepMatch()
-	local team = { {}, {} }
+  local team = { {}, {} }
     self.server:setTeam(self.id, team)
 end
 
 function DummyClient:update(dt)
-	if self.timer ~= false then
-		self.timer = self.timer + dt
-		if self.timer > 2 then
-			self.server:endTurn(self.id)
-			self.timer = false
-		end
-	end
+  if self.timer ~= false then
+    self.timer = self.timer + dt
+    if self.timer > 2 then
+      self.server:endTurn(self.id)
+      self.timer = false
+    end
+  end
 end
 
 function DummyClient:setActiveTeamMember(team, character)
-	if team == self.id then
-		self.timer = 0
-	end
+  if team == self.id then
+    self.timer = 0
+  end
 end
