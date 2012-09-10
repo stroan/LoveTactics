@@ -31,4 +31,5 @@ local spawnPoints = {{{5,5} ,{3,3}}
                     ,{{8,8}, {9,9}}}
 
 return { map = TileMap:new('tiles', map, baseHeight, objects)
-       , spawnPoints = spawnPoints }
+       , spawnPoints = spawnPoints
+       , requiredTeams = 2 }

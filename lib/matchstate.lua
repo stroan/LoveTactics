@@ -2,19 +2,23 @@ MatchState = {}
 MatchState.__index = MatchState
 function MatchState:new(map)
 	local o = {map = map
-              ,teams = {}}
+              ,teams = {}
+              ,teamCount = 0}
 	setmetatable(o, self)
 	return o
 end
 
 function MatchState:addTeam(teamName)
-	self.teams[teamName] = {members = {}}
+	self.teams[teamName] = {members = {}
+						   ,memberCount = 0}
+	self.teamCount = self.teamCount + 1
 end
 
 function MatchState:addTeamMember(teamName, characterId, i, j)
 	local team = self.teams[teamName]
 	local obj = {id = characterId, i = i, j = j}
 	team.members[characterId] = obj
+	team.memberCount = team.memberCount + 1
 	return obj
 end
 
@@ -45,39 +49,12 @@ function MatchState:canMove(coords)
 end
 
 function MatchState:getNextTeam()
-	local o = {}
-	for k,_ in pairs(self.teams) do
-		table.insert(o, k)
-	end
-	table.sort(o)
-
-    local nextI = 0
-	for i,v in ipairs(o) do
-		if v == self.currentTeam then
-			nextI = i
-			break
-		end
-	end
-
-	return o[math.mod(nextI, table.getn(o)) + 1]
+	return math.mod(self.currentTeam, self.teamCount) + 1
 end
 
 function MatchState:getNextMember(team)
-	local o = {}
-	for k,_ in pairs(self.teams[team].members) do
-		table.insert(o, k)
-	end
-	table.sort(o)
-
-    local nextI = 0
-	for i,v in ipairs(o) do
-		if v == self.teams[team].lastMember then
-			nextI = i
-			break
-		end
-	end
-
-	return o[math.mod(nextI, table.getn(o)) + 1]
+	local t = self.teams[team]
+	return math.mod(t.lastMember or 0, t.memberCount) + 1
 end
 
 function MatchState:moveNextTeamMember()

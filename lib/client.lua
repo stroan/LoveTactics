@@ -8,7 +8,6 @@ Client.__index = Client
 function Client:new(server)
 	local resourceLoader = ResourceLoader:new(true)
 	local o = { server = server
-              , id = "LOCAL"
               , cursor = Cursor:new()
               , selector = resourceLoader:getObject('selector')
               , resourceLoader = resourceLoader }
@@ -17,12 +16,6 @@ function Client:new(server)
 	server:connectClient(o)
 
 	return o
-end
-
-function Client:requestTeam()
-	local team = {character1 = {}
-                 ,character2 = {}}
-    self.server:setTeam(self.id, team)
 end
 
 function Client:update(dt)
@@ -63,9 +56,9 @@ function Client:draw()
 
     local y = 10
 	for k,_ in pairs(self.matchState.teams) do
-		local t = k
+		local t = 'Team ' .. k
 		if self.matchState.currentTeam == k then
-			t = t .. ' < ' .. self.matchState.currentMember
+			t = t .. ' < Character ' .. self.matchState.currentMember
 		end
 		love.graphics.print(t,10,y)
 		y = y + 15
@@ -77,6 +70,13 @@ function Client:prepMatch(levelName)
 	self.level = loadfile(levelName)().map
 	self.level:process(self.resourceLoader)
 	self.matchState = MatchState:new(self.level)
+
+	local members = { {}, {} }
+    self.server:setTeam(self.id, members)
+end
+
+function Client:setTeamId(id)
+	self.id = id
 end
 
 function Client:addTeam(name)

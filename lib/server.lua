@@ -4,7 +4,8 @@ require 'lib/matchstate'
 Server = {}
 Server.__index = Server
 function Server:new()
-	o = {clients = {}}
+	o = { clients = {}
+        , connectedClients = 0 }
 	setmetatable(o, self)
 	return o
 end
@@ -17,17 +18,12 @@ function Server:prepMatch(levelName)
 
 	self.level:process(ResourceLoader:new(false))
 
-	self.pendingTeams = 0
+	self.requiredTeams = levelFile.requiredTeams
+	self.readyTeams = 0
 
 	 -- Inform all clients of the teams and the players
 	for k1,c1 in pairs(self.clients) do
 		c1:prepMatch(levelName)
-		self.pendingTeams = self.pendingTeams + 1
-	end
-
-	-- Request teams from clients
-	for k1,c1 in pairs(self.clients) do
-		c1:requestTeam()
 	end
 end
 
@@ -69,14 +65,16 @@ function Server:startMatch()
 end
 
 function Server:connectClient(client)
-	self.clients[client.id] = client
+	self.connectedClients = self.connectedClients + 1
+	self.clients[self.connectedClients] = client
+	client:setTeamId(self.connectedClients)
 end
 
 function Server:setTeam(clientName, team)
 	self.clients[clientName].team = team
-	self.pendingTeams = self.pendingTeams - 1
+	self.readyTeams = self.readyTeams + 1
 	
-	if self.pendingTeams == 0 then
+	if self.readyTeams == self.requiredTeams then
 		self:startMatch()
 	end
 end
