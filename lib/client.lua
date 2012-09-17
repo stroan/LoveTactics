@@ -26,24 +26,32 @@ function Client:update(dt)
   local isMyTurn = self.matchState.currentTeam == self.id
 
   -- Update cursor position
-  self.level:removeDynObject(self.cursor)
   for _,v in ipairs(self.pathTiles) do
     self.level:removeDynObject(v)
   end
   self.pathTiles = {}
-  if isMyTurn and canMove then
-    local path = self.level:pathFind(activeMember.i, activeMember.j, coords.i, coords.j)
-    for _,v in ipairs(path) do
-      local tile = PathTile:new(self.selector)
-      table.insert(self.pathTiles, tile)
-      self.level:addDynObject(tile, v[1], v[2])
-    end
-    self.level:addDynObject(self.cursor, coords.i, coords.j)
-  end
 
-  -- Handle clicks
-  if love.mouse.isDown('l') and isMyTurn and canMove then
-    self.server:tryMove(self.matchState.currentTeam, self.matchState.currentMember, coords.i, coords.j)
+  if isMyTurn then -- Is it my turn?
+    if canMove then -- Is the focused tile empty 
+      local path = self.level:pathFind(activeMember.i, activeMember.j, coords.i, coords.j)
+      -- Can I move there within the contraints of my characters AP
+      if path and path.cost <= activeMember.state.currentAP then
+        for _,v in ipairs(path.path) do
+          local tile = PathTile:new(self.selector)
+          table.insert(self.pathTiles, tile)
+          self.level:addDynObject(tile, v[1], v[2])
+        end
+
+        -- Am I clicking on the tile?
+        if love.mouse.isDown('l') then
+          self.server:tryMove(self.matchState.currentTeam, self.matchState.currentMember, coords.i, coords.j, path.cost)
+        end
+      end
+    end
+
+    if love.keyboard.isDown('p') then
+      self.server:endTurn(self.id)
+    end
   end
 
   -- Scroll map around with keyboard
@@ -82,7 +90,7 @@ function Client:prepMatch(levelName)
   self.level:process(self.resourceLoader)
   self.matchState = MatchState:new(self.level)
 
-  local members = { {baseAP = 4}, {baseAP = 5} }
+  local members = { {baseAP = 40}, {baseAP = 50} }
   self.server:setTeam(self.id, members)
 end
 
@@ -114,8 +122,8 @@ function Client:setActiveTeamMember(team, character)
   end
 end
 
-function Client:moveCharacter(team, character, i, j)
-  local c = self.matchState:move(team, character, i, j)
+function Client:moveCharacter(team, character, i, j, cost)
+  local c = self.matchState:move(team, character, i, j, cost)
   self.level:moveDynObject(c.drawable, i, j)
   if self.matchState.currentTeam == self.id then
     self.level:moveDynObject(self.selector, i, j)

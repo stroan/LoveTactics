@@ -79,11 +79,11 @@ function Server:setTeam(clientName, team)
   end
 end
 
-function Server:tryMove(team, character, i, j)
-  local c = self.matchState:move(team, character, i, j)
+function Server:tryMove(team, character, i, j, cost)
+  local c = self.matchState:move(team, character, i, j, cost)
 
   for k,c in pairs(self.clients) do
-    c:moveCharacter(team, character, i, j)
+    c:moveCharacter(team, character, i, j, cost)
   end
 
   if c.state.currentAP == 0 then

@@ -53,11 +53,11 @@ function MatchState:canMove(coords)
   return true
 end
 
-function MatchState:move(team, character, i, j)
+function MatchState:move(team, character, i, j, cost)
   local c = self.teams[team].members[character]
   c.i = i
   c.j = j
-  c.state.currentAP = c.state.currentAP - 1
+  c.state.currentAP = c.state.currentAP - cost
   return c
 end
 

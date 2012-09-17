@@ -188,7 +188,7 @@ function TileMap:removeDynObject(object)
 end
 
 function TileMap:pathFind(si, sj, di, dj) 
-  local frontier = {{si, sj, 0, {{si, sj}}}}
+  local frontier = {{si, sj, 0, {{si, sj}}, self.heights[si][sj], 0}}
   local frontierSize = 1
 
   local result = nil
@@ -206,8 +206,11 @@ function TileMap:pathFind(si, sj, di, dj)
       return
     end
 
-    local cost = (math.abs(ti - di) + math.abs(tj - di)) + head[3]
-    table.insert(frontier, {ti, tj, cost, {{ti, tj}, head[4]}})
+    local tHeight = self.heights[ti][tj]
+    local heighDiff = math.abs(tHeight - head[5])
+
+    local cost = ((math.abs(ti - di) + math.abs(tj - di)) * 10) + heighDiff + head[3]
+    table.insert(frontier, {ti, tj, cost, {{ti, tj}, head[4]}, tHeight, head[6] + 10 + heighDiff})
     frontierSize = frontierSize + 1
     touchTile(ti, tj)
   end
@@ -220,7 +223,7 @@ function TileMap:pathFind(si, sj, di, dj)
     table.remove(frontier, 1)
 
     if head[1] == di and head[2] == dj then
-      result = head[4]
+      result = head
       break
     end
 
@@ -246,11 +249,12 @@ function TileMap:pathFind(si, sj, di, dj)
 
   if result then
     local rval = {}
-    while result do
-      table.insert(rval, 1, result[1])
-      result = result[2]
+    local path = result[4]
+    while path do
+      table.insert(rval, 1, path[1])
+      path = path[2]
     end
-    return rval
+    return {path = rval, cost = result[6]}
   end
 end
 
