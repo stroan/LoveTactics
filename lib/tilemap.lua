@@ -156,8 +156,9 @@ function TileMap:addDynObject(object, i, j)
   local cell = self:getDynObjectCell(i, j)
   local index = 1
   for k,v in ipairs(cell) do
-    index = k
+    index = k + 1
     if v.zIndex > object.zIndex then
+      index = k
       break
     end
   end
@@ -192,11 +193,26 @@ function TileMap:pathFind(si, sj, di, dj)
 
   local result = nil
 
+  local touchedTiles = {}
+
+  local function touchTile(i, j)
+    local row = touchedTiles[i] or {}
+    touchedTiles[i] = row
+    row[j] = true
+  end
+
   local function addNode(ti, tj, head)
+    if (touchedTiles[ti] or {})[tj] then
+      return
+    end
+
     local cost = (math.abs(ti - di) + math.abs(tj - di)) + head[3]
     table.insert(frontier, {ti, tj, cost, {{ti, tj}, head[4]}})
     frontierSize = frontierSize + 1
+    touchTile(ti, tj)
   end
+
+  touchTile(si, sj)
 
   while frontierSize > 0 do
     frontierSize = frontierSize - 1

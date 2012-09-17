@@ -10,7 +10,8 @@ function Client:new(server)
   local o = { server = server
             , cursor = Cursor:new()
             , selector = resourceLoader:getObject('selector')
-            , resourceLoader = resourceLoader }
+            , resourceLoader = resourceLoader
+            , pathTiles = {} }
   setmetatable(o, self)
 
   server:connectClient(o)
@@ -26,7 +27,17 @@ function Client:update(dt)
 
   -- Update cursor position
   self.level:removeDynObject(self.cursor)
+  for _,v in ipairs(self.pathTiles) do
+    self.level:removeDynObject(v)
+  end
+  self.pathTiles = {}
   if isMyTurn and canMove then
+    local path = self.level:pathFind(activeMember.i, activeMember.j, coords.i, coords.j)
+    for _,v in ipairs(path) do
+      local tile = PathTile:new(self.selector)
+      table.insert(self.pathTiles, tile)
+      self.level:addDynObject(tile, v[1], v[2])
+    end
     self.level:addDynObject(self.cursor, coords.i, coords.j)
   end
 
@@ -138,4 +149,17 @@ function PlayerDrawable:draw(x, y)
   love.graphics.setColor(self.colour[1],self.colour[2],self.colour[3],255)
   love.graphics.circle("fill", x, y, 10, 5)
   love.graphics.setColor(255,255,255,255)
+end
+
+PathTile = {}
+PathTile.__index = PathTile
+function PathTile:new(selector)
+  local o = {zIndex = 1
+            ,selector = selector}
+  setmetatable(o, self)
+  return o
+end
+
+function PathTile:draw(x, y)
+  self.selector:draw(x,y)
 end
