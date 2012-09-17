@@ -186,6 +186,58 @@ function TileMap:removeDynObject(object)
   end
 end
 
+function TileMap:pathFind(si, sj, di, dj) 
+  local frontier = {{si, sj, 0, {{si, sj}}}}
+  local frontierSize = 1
+
+  local result = nil
+
+  local function addNode(ti, tj, head)
+    local cost = (math.abs(ti - di) + math.abs(tj - di)) + head[3]
+    table.insert(frontier, {ti, tj, cost, {{ti, tj}, head[4]}})
+    frontierSize = frontierSize + 1
+  end
+
+  while frontierSize > 0 do
+    frontierSize = frontierSize - 1
+    local head = frontier[1]
+    table.remove(frontier, 1)
+
+    if head[1] == di and head[2] == dj then
+      result = head[4]
+      break
+    end
+
+    -- Add neighbour nodes
+    if head[1] > 1 then
+      addNode(head[1] - 1, head[2], head)
+    end
+
+    if head[1] < self.depth then
+      addNode(head[1] + 1, head[2], head)
+    end
+
+    if head[2] > 1 then
+      addNode(head[1], head[2] - 1, head)
+    end
+
+    if head[2] < self.width then
+      addNode(head[1], head[2] + 1, head)
+    end
+
+    table.sort(frontier, function (a, b) return a[3] < b[3] end)
+  end
+
+  if result then
+    local rval = {}
+    while result do
+      table.insert(rval, 1, result[1])
+      result = result[2]
+    end
+    return rval
+  end
+end
+
 -- Wraps around a sprite sheet and contains information
 -- about the nature of each tile. In particular it stores
 -- the height of the tile in pixels.

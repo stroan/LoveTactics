@@ -54,7 +54,6 @@ function MatchState:canMove(coords)
 end
 
 function MatchState:move(team, character, i, j)
-  print("this moving")
   local c = self.teams[team].members[character]
   c.i = i
   c.j = j
